@@ -1,26 +1,39 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { FC, Key, useEffect, useMemo, useState } from 'react';
 
-function App() {
+import './App.css';
+import { Details } from './components/Details';
+import { List } from './components/List';
+import { urls } from './consts';
+import { UserInfoTypes } from './types';
+
+const App: FC = () => {
+  const [userId, setUserId] = useState<Key>('');
+  const [userInfo, setUserInfo] = useState<Partial<UserInfoTypes>>();
+
+  const onSelectUserId = useMemo(() => {
+    return (id: Key) => () => setUserId(id);
+  }, []);
+
+  const getUserById = async (id: Key) => {
+    try {
+      const response = await fetch(urls(id).userById);
+      const data = await response.json();
+      setUserInfo(data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    userId && getUserById(userId);
+  }, [userId]);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="app">
+      <List userId={userId} onSelectUserId={onSelectUserId} />
+      {userInfo && <Details {...userInfo} />}
     </div>
   );
-}
+};
 
 export default App;
